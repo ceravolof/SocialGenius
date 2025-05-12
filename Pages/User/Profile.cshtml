@@ -1,0 +1,386 @@
+﻿@page
+@model ProfileModel
+@{
+    ViewData["Title"] = "Il Mio Profilo";
+}
+
+<link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="profile-card card mb-4">
+            <div class="profile-header">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3 col-md-4 text-center text-md-start">
+                            <div class="avatar-container mx-auto mx-md-0">
+                                <div class="avatar mx-auto mx-md-0">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="avatar-edit">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-9 col-md-8 text-center text-md-start">
+                            <h2 class="mb-1">@User.Identity?.Name</h2>
+                            <p class="mb-3">@Model.UserEmail</p>
+                            <span class="badge @(Model.IsPremium ? "bg-warning" : "bg-light text-dark")">
+                                <i class="@(Model.IsPremium ? "fas fa-star" : "far fa-user")"></i>
+                                @(Model.IsPremium ? "Utente Premium" : "Utente Base")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <ul class="nav nav-tabs" id="profileTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="true">
+                            <i class="fas fa-user me-2"></i>Profilo
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="premium-tab" data-bs-toggle="tab" data-bs-target="#premium" type="button" role="tab" aria-controls="premium" aria-selected="false">
+                            <i class="fas fa-star me-2"></i>Abbonamento
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">
+                            <i class="fas fa-shield-alt me-2"></i>Sicurezza
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="profileTabContent">
+                    <!-- Scheda Profilo -->
+                    <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                        <form method="post" asp-page-handler="UpdateProfile">
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-4 mb-md-0">
+                                    <div class="form-floating mb-3">
+                                        <input type="text" class="form-control" id="username" name="Username" value="@User.Identity?.Name" readonly>
+                                        <label for="username"><i class="fas fa-user me-2 text-muted"></i>Nome utente</label>
+                                        <div class="form-text">Il nome utente non può essere modificato.</div>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <input type="email" class="form-control" id="email" name="Email" value="@Model.UserEmail" required>
+                                        <label for="email"><i class="fas fa-envelope me-2 text-muted"></i>Email</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <textarea class="form-control" id="bio" name="Bio" style="height: 120px;" maxlength="200">@Model.UserBio</textarea>
+                                        <label for="bio"><i class="fas fa-comment-alt me-2 text-muted"></i>Bio</label>
+                                        <div class="form-text">Raccontaci qualcosa di te (max 200 caratteri).</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary custom-btn">
+                                    <i class="fas fa-save me-2"></i>Salva modifiche
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Scheda Abbonamento -->
+                    <div class="tab-pane fade" id="premium" role="tabpanel" aria-labelledby="premium-tab">
+                        <div class="row">
+                            <div class="col-md-6 mb-4 mb-md-0">
+                                <div class="plan-card plan-free h-100">
+                                    <span class="plan-badge badge-free">Base</span>
+                                    <h3 class="mb-4">Piano Base</h3>
+                                    <div class="mb-3">
+                                        <span class="plan-price">Gratuito</span>
+                                    </div>
+                                    <p class="text-muted mb-4">Accesso alle funzionalità di base.</p>
+
+                                    <ul class="feature-list mb-4">
+                                        <li>
+                                            <i class="fas fa-check"></i> Accesso alla community
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-check"></i> Profilo personalizzabile
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-times text-muted"></i> <span class="text-muted">Contenuti esclusivi</span>
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-times text-muted"></i> <span class="text-muted">Pubblicazioni illimitate</span>
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-times text-muted"></i> <span class="text-muted">Badge premium</span>
+                                        </li>
+                                    </ul>
+
+                                    @if (Model.IsPremium)
+                                    {
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i> Hai già un abbonamento di livello superiore.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="plan-card plan-premium @(Model.IsPremium ? "" : "premium-highlight") h-100">
+                                    <span class="plan-badge badge-premium">Premium</span>
+                                    <h3 class="mb-4">Piano Premium</h3>
+                                    <div class="mb-3">
+                                        <span class="plan-price">€9.99</span>
+                                        <span class="plan-period">/mese</span>
+                                    </div>
+                                    <p class="text-muted mb-4">Sblocca tutte le funzionalità esclusive!</p>
+
+                                    <ul class="feature-list mb-4">
+                                        <li>
+                                            <i class="fas fa-check"></i> Accesso alla community
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-check"></i> Profilo personalizzabile
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-check"></i> <strong>Contenuti esclusivi</strong>
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-check"></i> <strong>Pubblicazioni illimitate</strong>
+                                        </li>
+                                        <li>
+                                            <i class="fas fa-check"></i> <strong>Badge premium</strong>
+                                        </li>
+                                    </ul>
+
+                                    @if (!Model.IsPremium)
+                                    {
+                                        <form method="post" asp-page-handler="UpgradeToPremium">
+                                            <button type="submit" class="btn btn-primary custom-btn w-100">
+                                                <i class="fas fa-arrow-up me-2"></i>Passa a Premium
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle me-2"></i> Sei già un utente Premium!
+                                        </div>
+                                        <form method="post" asp-page-handler="CancelPremium">
+                                            <button type="submit" class="btn btn-outline-danger w-100">
+                                                <i class="fas fa-times me-2"></i>Cancella abbonamento
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scheda Sicurezza -->
+                    <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
+                        <h4 class="mb-4">Modifica Password</h4>
+                        <form method="post" asp-page-handler="ChangePassword" id="passwordForm">
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-floating mb-3">
+                                        <input type="password" class="form-control" id="currentPassword" name="CurrentPassword" required>
+                                        <label for="currentPassword"><i class="fas fa-lock me-2 text-muted"></i>Password Attuale</label>
+                                        <div id="currentPasswordFeedback" class="invalid-feedback"></div>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <input type="password" class="form-control" id="newPassword" name="NewPassword" required>
+                                        <label for="newPassword"><i class="fas fa-key me-2 text-muted"></i>Nuova Password</label>
+                                        <div id="newPasswordFeedback" class="invalid-feedback"></div>
+                                    </div>
+
+                                    <div class="form-floating mb-3">
+                                        <input type="password" class="form-control" id="confirmPassword" name="ConfirmPassword" required>
+                                        <label for="confirmPassword"><i class="fas fa-check-circle me-2 text-muted"></i>Conferma Password</label>
+                                        <div id="confirmPasswordFeedback" class="invalid-feedback"></div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary custom-btn">
+                                        <i class="fas fa-save me-2"></i>Aggiorna Password
+                                    </button>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="card bg-light border-0 p-3 h-100" id="passwordTips">
+                                        <h5 class="mb-3">Suggerimenti per una password sicura:</h5>
+                                        <ul class="mb-0 password-criteria">
+                                            <li class="mb-2" id="length"><span class="criteria-icon">⚪</span> Usa almeno 8 caratteri</li>
+                                            <li class="mb-2" id="uppercase"><span class="criteria-icon">⚪</span> Includi caratteri maiuscoli</li>
+                                            <li class="mb-2" id="lowercase"><span class="criteria-icon">⚪</span> Includi caratteri minuscoli</li>
+                                            <li class="mb-2" id="number"><span class="criteria-icon">⚪</span> Aggiungi numeri</li>
+                                            <li id="special"><span class="criteria-icon">⚪</span> Aggiungi simboli speciali</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast per notifica di successo (emerge quando necessario) -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i><span id="toastMessage"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Attiva il tab ricordato o il primo tab
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestione navigazione tab
+            const lastTab = localStorage.getItem('lastProfileTab');
+            if (lastTab) {
+                const tabEl = document.querySelector(`button[data-bs-target="${lastTab}"]`);
+                if (tabEl) {
+                    const tab = new bootstrap.Tab(tabEl);
+                    tab.show();
+                }
+            }
+
+            // Salva l'ultimo tab cliccato
+            const tabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
+            tabs.forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function(e) {
+                    localStorage.setItem('lastProfileTab', e.target.getAttribute('data-bs-target'));
+                });
+            });
+
+            // Validazione password in tempo reale
+            const newPasswordInput = document.getElementById('newPassword');
+            if (newPasswordInput) {
+                newPasswordInput.addEventListener('input', validatePassword);
+
+                // Validazione al submit
+                document.getElementById('passwordForm').addEventListener('submit', function(e) {
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+
+                    let isValid = true;
+
+                    // Controlla se la password attuale è inserita
+                    if (!currentPassword) {
+                        document.getElementById('currentPassword').classList.add('is-invalid');
+                        document.getElementById('currentPasswordFeedback').textContent = 'Inserisci la password attuale';
+                        isValid = false;
+                    } else {
+                        document.getElementById('currentPassword').classList.remove('is-invalid');
+                    }
+
+                    // Valida password
+                    const passwordValid = validatePassword();
+
+                    // Controlla se le password corrispondono
+                    if (newPassword !== confirmPassword) {
+                        document.getElementById('confirmPassword').classList.add('is-invalid');
+                        document.getElementById('confirmPasswordFeedback').textContent = 'Le password non corrispondono';
+                        isValid = false;
+                    } else {
+                        document.getElementById('confirmPassword').classList.remove('is-invalid');
+                    }
+
+                    if (!isValid || !passwordValid) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+
+        // Validazione password
+        function validatePassword() {
+            const password = document.getElementById('newPassword').value;
+            const passwordInput = document.getElementById('newPassword');
+            const feedback = document.getElementById('newPasswordFeedback');
+
+            // Criteri
+            const minLength = password.length >= 8;
+            const hasUpperCase = /[A-Z]/.test(password);
+            const hasLowerCase = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSpecial = /[^A-Za-z0-9]/.test(password);
+
+            // Aggiorna indicatori
+            updateCriteria('length', minLength);
+            updateCriteria('uppercase', hasUpperCase);
+            updateCriteria('lowercase', hasLowerCase);
+            updateCriteria('number', hasNumber);
+            updateCriteria('special', hasSpecial);
+
+            // Verifica se tutti i criteri sono soddisfatti
+            const isValid = minLength && hasUpperCase && hasLowerCase && hasNumber && hasSpecial;
+
+            if (!isValid && password) {
+                passwordInput.classList.add('is-invalid');
+                feedback.textContent = 'La password deve soddisfare tutti i criteri di sicurezza';
+                return false;
+            } else {
+                passwordInput.classList.remove('is-invalid');
+                return true;
+            }
+        }
+
+        function updateCriteria(id, isValid) {
+            const element = document.getElementById(id);
+            if (isValid) {
+                element.classList.add('text-success');
+                element.classList.remove('text-danger');
+                element.querySelector('.criteria-icon').textContent = '✓';
+            } else {
+                element.classList.remove('text-success');
+                element.classList.add('text-danger');
+                element.querySelector('.criteria-icon').textContent = '✗';
+            }
+        }
+
+        // Mostra toast se necessario (chiamato dal code behind quando c'è un messaggio da mostrare)
+        function showToast(message) {
+            document.getElementById('toastMessage').textContent = message;
+            const toast = new bootstrap.Toast(document.getElementById('successToast'));
+            toast.show();
+        }
+
+        // Controlla se c'è un messaggio di successo e mostra il toast
+        @if (TempData["SuccessToast"] != null)
+        {
+            <text>
+                document.addEventListener('DOMContentLoaded', function() {
+                    showToast('@TempData["SuccessToast"]');
+                });
+            </text>
+        }
+    </script>
+}

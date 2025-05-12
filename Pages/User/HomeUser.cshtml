@@ -1,0 +1,234 @@
+﻿@page
+@model HomeUserModel
+@{
+    ViewData["Title"] = "I tuoi Post";
+}
+
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+
+<div class="post-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h1 class="gradient-heading">
+                    <i class="fas fa-images me-2"></i>I tuoi Post
+                </h1>
+                <p class="text-muted">Gestisci i tuoi contenuti social in un unico posto</p>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                @if (Model.PostsCreatedToday < 3 || User.IsInRole("Premium") || User.IsInRole("Admin"))
+                {
+                    <a href="/Post/Create" class="btn btn-primary btn-lg create-btn">
+                        <i class="fas fa-plus-circle me-2"></i>Nuovo Post
+                    </a>
+                }
+                else
+                {
+                    <button class="btn btn-primary btn-lg create-btn" disabled title="Hai raggiunto il limite di post giornalieri">
+                        <i class="fas fa-plus-circle me-2"></i>Nuovo Post
+                    </button>
+                    <div class="alert alert-info mt-2 limit-alert">
+                        <i class="fas fa-info-circle me-2"></i>Hai raggiunto il limite di 3 post giornalieri. <a href="/User/Profile?tab=premium" class="upgrade-link">Passa a Premium</a> per post illimitati!
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="card search-card mb-4">
+        <div class="card-body">
+            <form method="get" class="search-form">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" name="searchTerm" 
+                                placeholder="Cerca nei tuoi post..." value="@Model.CurrentSearchTerm">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="platform">
+                            <option value="" selected="@string.IsNullOrEmpty(Model.CurrentPlatform)">Tutte le piattaforme</option>
+                            <option value="Instagram" selected="@(Model.CurrentPlatform == "Instagram")">Instagram</option>
+                            <option value="Facebook" selected="@(Model.CurrentPlatform == "Facebook")">Facebook</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-grid">
+                        <button type="submit" class="btn btn-primary">Filtra</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    @if (Model.Posts.Any())
+    {
+        <div class="row g-4" id="postsContainer">
+            @foreach (var post in Model.Posts)
+            {
+                <div class="col-md-6 col-lg-4 post-card-container">
+                    <div class="card post-card h-100">
+                        <div class="platform-badge @(post.SocialPlatform.ToLower())">
+                            <i class="fab fa-@(post.SocialPlatform.ToLower())"></i>
+                        </div>
+                        <div class="post-image-container">
+                            @if (!string.IsNullOrEmpty(post.ImgUrl))
+                            {
+                                <img src="@post.ImgUrl" alt="Immagine post" class="post-image">
+                            }
+                            else
+                            {
+                                <div class="no-image">
+                                    <i class="fas fa-image"></i>
+                                    <span>Nessuna immagine</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                @(post.Content.Length > 30 ? post.Content.Substring(0, 27) + "..." : post.Content)
+                            </h5>
+                            <p class="card-text text-muted small">
+                                @post.DateCreate.ToString("dd/MM/yyyy HH:mm")
+                            </p>
+                            <div class="hashtags">
+                                @{
+                                    // Estrae gli hashtag dal contenuto
+                                    var hashtags = System.Text.RegularExpressions.Regex.Matches(post.Content, @"#\w+")
+                                        .Cast<System.Text.RegularExpressions.Match>()
+                                        .Select(m => m.Value)
+                                        .Take(3);
+                                    
+                                    foreach (var hashtag in hashtags)
+                                    {
+                                        <span class="hashtag">@hashtag</span>
+                                    }
+                                    
+                                    if (hashtags.Count() > 0)
+                                    {
+                                        <span class="hashtag-more">+@(System.Text.RegularExpressions.Regex.Matches(post.Content, @"#\w+").Count - hashtags.Count())</span>
+                                    }
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="post-actions">
+                                <a href="/Post/Edit/@post.IdPost" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-edit me-1"></i>Modifica
+                                </a>
+                                <a href="/Post/View/@post.IdPost" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Visualizza
+                                </a>
+                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                        onclick="confirmDelete(@post.IdPost)">
+                                    <i class="fas fa-trash me-1"></i>Elimina
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="pagination-container mt-4">
+            <nav aria-label="Navigazione pagine">
+                <ul class="pagination justify-content-center">
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="?page=@(Model.CurrentPage - 1)&searchTerm=@Model.CurrentSearchTerm&platform=@Model.CurrentPlatform">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+                        </li>
+                    }
+                    
+                    @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                    {
+                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="?page=@i&searchTerm=@Model.CurrentSearchTerm&platform=@Model.CurrentPlatform">@i</a>
+                        </li>
+                    }
+                    
+                    @if (Model.CurrentPage < Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="?page=@(Model.CurrentPage + 1)&searchTerm=@Model.CurrentSearchTerm&platform=@Model.CurrentPlatform">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="far fa-images"></i>
+            </div>
+            <h3>Nessun post trovato</h3>
+            <p class="text-muted">
+                @if (!string.IsNullOrEmpty(Model.CurrentSearchTerm) || !string.IsNullOrEmpty(Model.CurrentPlatform))
+                {
+                    <span>Nessun risultato per i filtri selezionati. <a href="/User/HomeUser">Rimuovi i filtri</a></span>
+                }
+                else
+                {
+                    <span>Inizia a creare il tuo primo post social!</span>
+                }
+            </p>
+            <a href="/Post/Create" class="btn btn-primary btn-lg mt-3">
+                <i class="fas fa-plus-circle me-2"></i>Crea un nuovo post
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Modal di conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Conferma eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler eliminare questo post? Questa azione non può essere annullata.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form id="deleteForm" method="post" asp-page-handler="Delete">
+                    <input type="hidden" id="postIdToDelete" name="postId" value="" />
+                    <button type="submit" class="btn btn-danger">Elimina</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(postId) {
+            document.getElementById('postIdToDelete').value = postId;
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+    </script>
+}

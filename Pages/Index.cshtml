@@ -1,0 +1,196 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Benvenuto";
+    Layout = "_LayoutNoNav";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --text-color: #2b2d42;
+        --light-color: #f8f9fa;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text-color);
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Hero section */
+    .hero-section {
+        padding: 5rem 0;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .gradient-text {
+        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        color: #6c757d;
+        margin-bottom: 2rem;
+    }
+
+    /* Card styling */
+    .feature-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.07);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(67, 97, 238, 0.1);
+        }
+
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        color: white;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Button styling */
+    .btn-action {
+        padding: 0.75rem 1.75rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        border: none;
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--primary-color);
+        border: 2px solid var(--primary-color);
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+    }
+
+    .btn-outline:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    /* Footer style */
+    footer {
+        margin-top: auto;
+        padding: 1.5rem 0;
+        background-color: white;
+        border-top: 1px solid rgba(0,0,0,0.05);
+    }
+</style>
+
+<header>
+    <nav class="navbar navbar-expand-md py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="fas fa-brain me-2"></i>
+                <span class="gradient-text fw-bold">SocialGenius</span>
+            </a>
+        </div>
+    </nav>
+</header>
+
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <h1 class="hero-title">
+                    Connettiti con <span class="gradient-text">Menti Brillanti</span>
+                </h1>
+                <p class="hero-subtitle">
+                    SocialGenius è la piattaforma dove le idee innovative si incontrano.
+                    Condividi conoscenze, crea progetti e collabora con persone che condividono i tuoi interessi.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="/Account/Login" class="btn btn-primary btn-action">
+                        <i class="fas fa-sign-in-alt me-2"></i>Accedi
+                    </a>
+                    <a href="/Account/Register" class="btn btn-outline btn-action">
+                        <i class="fas fa-user-plus me-2"></i>Registrati
+                    </a>
+                </div>
+            </div><br>
+            <!-- grafica da togliere-->
+            <div class="col-lg-6">
+                <div class="rounded-4 shadow-lg p-5 bg-white position-relative overflow-hidden" style="height: 400px;">
+                    <div style="position: absolute; width: 200px; height: 200px; background: linear-gradient(45deg, #4361ee, #4895ef); border-radius: 50%; top: -50px; left: -50px; opacity: 0.7;"></div>
+                    <div style="position: absolute; width: 150px; height: 150px; background: linear-gradient(45deg, #3f37c9, #4361ee); border-radius: 50%; bottom: -30px; right: 100px; opacity: 0.5;"></div>
+                    <div style="position: absolute; width: 100px; height: 100px; background: linear-gradient(45deg, #4895ef, #4cc9f0); border-radius: 50%; top: 50px; right: -20px; opacity: 0.6;"></div>
+                    <div class="position-relative h-100 d-flex flex-column align-items-center justify-content-center">
+                        <i class="fas fa-brain fa-5x mb-4" style="color: #4361ee;"></i>
+                        <h3 class="gradient-text fw-bold">SocialGenius</h3>
+                        <p class="text-center mt-3">La piattaforma per le menti brillanti</p>
+                    </div>
+                </div>
+            </div>
+            <!-- grafica da togliere-->
+
+        </div>
+
+        <div class="row mt-5 pt-5">
+            <div class="col-12 text-center mb-5">
+                <h2 class="fw-bold">Perché <span class="gradient-text">SocialGenius</span>?</h2>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card card p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                    <h3 class="h5 fw-bold">Comunità Stimolante</h3>
+                    <p class="text-muted">Unisciti a conversazioni stimolanti con persone che condividono i tuoi interessi.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card card p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-lightbulb fa-2x"></i>
+                    </div>
+                    <h3 class="h5 fw-bold">Idee Innovative</h3>
+                    <p class="text-muted">Scopri progetti innovativi e collabora con menti brillanti per realizzarli.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card card p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket fa-2x"></i>
+                    </div>
+                    <h3 class="h5 fw-bold">Crescita Personale</h3>
+                    <p class="text-muted">Sviluppa nuove competenze e amplia i tuoi orizzonti professionali.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

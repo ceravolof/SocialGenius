@@ -1,0 +1,634 @@
+﻿@page
+@model SocialGenius.Pages.Post.CreateModel
+@{
+    ViewData["Title"] = "Crea Nuovo Post";
+}
+
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/create-post.css" asp-append-version="true" />
+
+<style>
+    /* Miglioramenti dello stile per uniformare alla pagina Index */
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --text-color: #2b2d42;
+        --light-color: #f8f9fa;
+    }
+
+    .post-header {
+        background: linear-gradient(145deg, var(--primary-color), var(--accent-color));
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+    }
+
+    .gradient-heading {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: white;
+    }
+
+    .post-header p.text-muted {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    /* Miglioramento contrasto per steps */
+    .nav-wizard .nav-link {
+        color: var(--text-color);
+    }
+
+        .nav-wizard .nav-link .step-title {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        /* Correzione: Rendere bianco il testo quando tab è attivo */
+        .nav-wizard .nav-link.active .step-title {
+            color: white;
+        }
+
+    .step-heading h3 {
+        color: var(--text-color);
+    }
+
+    /* Stile coerente con pagina iniziale */
+    .feature-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.07);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+
+    /* Rimozione dell'effetto hover per le card nella sezione contenuto */
+    .interests-card.feature-card:hover,
+    .content-card.feature-card:hover {
+        transform: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.07);
+    }
+
+    /* Mantenimento dell'effetto hover solo per le platform cards */
+    .platform-card.feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(67, 97, 238, 0.1);
+    }
+
+    .btn-primary {
+        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        border: none;
+        padding: 0.75rem 1.75rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+
+    .btn-success {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        border: none;
+        padding: 0.75rem 1.75rem;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+    /* Stile per campi personalizzati */
+    .custom-interest {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px dashed #dee2e6;
+    }
+
+    /* Stili per i pulsanti di navigazione */
+    .btn-nav {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+        .btn-nav i {
+            font-size: 1.25rem;
+        }
+
+    /* Icone nei pulsanti di azione */
+    .btn-action-icon {
+        margin-right: 8px;
+    }
+</style>
+
+<div class="post-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-12">
+                <h1 class="gradient-heading">
+                    <i class="fas fa-plus-circle me-2"></i>Crea Nuovo Post
+                </h1>
+                <p class="text-muted">Crea contenuti accattivanti per i tuoi social media</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-4">
+    <div class="card creation-card">
+        <div class="card-body">
+            <div class="wizard-container">
+                <ul class="nav nav-pills nav-wizard" id="creationSteps" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="step1-tab" data-bs-toggle="pill" data-bs-target="#step1" type="button" role="tab" aria-controls="step1" aria-selected="true">
+                            <span class="step-number">1</span>
+                            <span class="step-title">Piattaforma</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="step2-tab" data-bs-toggle="pill" data-bs-target="#step2" type="button" role="tab" aria-controls="step2" aria-selected="false">
+                            <span class="step-number">2</span>
+                            <span class="step-title">Media</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="step3-tab" data-bs-toggle="pill" data-bs-target="#step3" type="button" role="tab" aria-controls="step3" aria-selected="false">
+                            <span class="step-number">3</span>
+                            <span class="step-title">Contenuto</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="step4-tab" data-bs-toggle="pill" data-bs-target="#step4" type="button" role="tab" aria-controls="step4" aria-selected="false">
+                            <span class="step-number">4</span>
+                            <span class="step-title">Anteprima</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <form method="post" enctype="multipart/form-data" id="postForm">
+                    @Html.AntiForgeryToken()
+                    <div class="tab-content" id="creationStepsContent">
+                        <!-- Step 1: Piattaforma -->
+                        <div class="tab-pane fade show active" id="step1" role="tabpanel" aria-labelledby="step1-tab">
+                            <div class="step-heading">
+                                <h3>Scegli la piattaforma</h3>
+                                <p>Seleziona dove vuoi pubblicare il tuo contenuto</p>
+                            </div>
+
+                            <div class="platforms-container">
+                                <div class="row justify-content-center">
+                                    <div class="col-md-5">
+                                        <div class="platform-card feature-card @(Model.PostInput.SocialPlatform == "Instagram" ? "selected" : "")" data-platform="Instagram">
+                                            <div class="platform-icon">
+                                                <i class="fab fa-instagram"></i>
+                                            </div>
+                                            <h4>Instagram</h4>
+                                            <p>Perfetto per contenuti visivi, creativi e lifestyle</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <div class="platform-card feature-card @(Model.PostInput.SocialPlatform == "Facebook" ? "selected" : "")" data-platform="Facebook">
+                                            <div class="platform-icon">
+                                                <i class="fab fa-facebook"></i>
+                                            </div>
+                                            <h4>Facebook</h4>
+                                            <p>Ideale per condividere storie, eventi e connessioni</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="PostInput.SocialPlatform" id="selectedPlatform" value="@Model.PostInput.SocialPlatform">
+
+                            <div class="step-navigation">
+                                <!-- Aggiunta icona al pulsante Annulla -->
+                                <a href="@(User.IsInRole("Premium") ? "/User/Premium/HomePremium" : "/User/HomeUser")" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times-circle btn-action-icon"></i>Annulla
+                                </a>
+                                <!-- Sostituito testo con icona per il pulsante Avanti -->
+                                <button type="button" class="btn btn-primary next-step btn-nav" id="stepOneNext" disabled>
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Media -->
+                        <div class="tab-pane fade" id="step2" role="tabpanel" aria-labelledby="step2-tab">
+                            <div class="step-heading">
+                                <h3>Aggiungi un'immagine</h3>
+                                <p>Carica un'immagine per il tuo post</p>
+                            </div>
+
+                            <div class="media-upload-container">
+                                <div id="imagePreviewContainer" class="d-none">
+                                    <img id="imagePreview" src="#" alt="Anteprima immagine" class="img-fluid">
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-image">
+                                        <i class="fas fa-times"></i> Rimuovi
+                                    </button>
+                                </div>
+
+                                <div id="uploadContainer">
+                                    <div class="upload-area">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <h5>Clicca per caricare (opzionale)</h5>
+                                        <p class="text-muted">Supporta JPG, PNG e GIF fino a 5MB</p>
+                                        <input type="file" id="imageUpload" name="PostInput.ImageFile" class="d-none" accept="image/*">
+                                        <button type="button" class="btn btn-outline-primary mt-3" id="triggerUpload">
+                                            Seleziona un file
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Rimosso campo "Auto-generata" -->
+                                <input type="hidden" name="PostInput.ImgSource" value="upload" />
+                                <input type="hidden" asp-for="PostInput.ImgUrl" id="hiddenImgUrl">
+                            </div>
+
+                            <div class="step-navigation">
+                                <!-- Sostituito testo con icona per il pulsante Indietro -->
+                                <button type="button" class="btn btn-outline-secondary prev-step btn-nav">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                                <!-- Sostituito testo con icona per il pulsante Avanti -->
+                                <button type="button" class="btn btn-primary next-step btn-nav">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Contenuto -->
+                        <div class="tab-pane fade" id="step3" role="tabpanel" aria-labelledby="step3-tab">
+                            <div class="step-heading">
+                                <h3>Crea il tuo contenuto</h3>
+                                <p>Scegli i temi e genera una descrizione con hashtag</p>
+                            </div>
+
+                            <div class="content-creation">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <div class="card interests-card feature-card">
+                                            <div class="card-header">
+                                                <h5 class="card-title mb-0">Temi di interesse</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="text-muted mb-3">Seleziona fino a 3 temi per il tuo post</p>
+                                                <div class="interests-container">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="travel" value="Viaggi">
+                                                        <label class="form-check-label" for="travel">Viaggi</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="food" value="Cibo">
+                                                        <label class="form-check-label" for="food">Cibo</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="fashion" value="Moda">
+                                                        <label class="form-check-label" for="fashion">Moda</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="fitness" value="Fitness">
+                                                        <label class="form-check-label" for="fitness">Fitness</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="tech" value="Tecnologia">
+                                                        <label class="form-check-label" for="tech">Tecnologia</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="beauty" value="Bellezza">
+                                                        <label class="form-check-label" for="beauty">Bellezza</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="art" value="Arte">
+                                                        <label class="form-check-label" for="art">Arte</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="business" value="Business">
+                                                        <label class="form-check-label" for="business">Business</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="nature" value="Natura">
+                                                        <label class="form-check-label" for="nature">Natura</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input interest-check" type="checkbox" id="music" value="Musica">
+                                                        <label class="form-check-label" for="music">Musica</label>
+                                                    </div>
+
+                                                    <!-- Aggiunto campo "Altro" -->
+                                                    <div class="custom-interest">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="customInterestCheck" value="Custom">
+                                                            <label class="form-check-label" for="customInterestCheck">Altro</label>
+                                                        </div>
+                                                        <div id="customInterestField" class="mt-2 d-none">
+                                                            <input type="text" id="customInterestText" class="form-control" placeholder="Inserisci il tuo tema personalizzato">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div id="interestsError" class="text-danger d-none">
+                                                    Seleziona almeno un tema di interesse
+                                                </div>
+                                                <div class="mt-3">
+                                                    <button type="button" id="generateContent" class="btn btn-primary w-100">
+                                                        <i class="fas fa-magic me-2"></i>Genera contenuto
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <div class="card content-card feature-card">
+                                            <div class="card-header">
+                                                <h5 class="card-title mb-0">Descrizione del post</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div id="contentLoading" class="content-loading d-none">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="visually-hidden">Generazione in corso...</span>
+                                                    </div>
+                                                    <p>Stiamo generando il contenuto perfetto...</p>
+                                                </div>
+                                                <div class="form-group">
+                                                    <textarea asp-for="PostInput.Content" class="form-control" rows="10" placeholder="Il tuo contenuto apparirà qui dopo la generazione. Puoi anche scrivere direttamente."></textarea>
+                                                </div>
+                                                <div class="hashtag-preview mt-3">
+                                                    <div id="hashtagContainer"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="step-navigation">
+                                <!-- Sostituito testo con icona per il pulsante Indietro -->
+                                <button type="button" class="btn btn-outline-secondary prev-step btn-nav">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                                <!-- Sostituito testo con icona per il pulsante Avanti -->
+                                <button type="button" class="btn btn-primary next-step btn-nav" id="step3Next">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Anteprima -->
+                        <div class="tab-pane fade" id="step4" role="tabpanel" aria-labelledby="step4-tab">
+                            <div class="step-heading">
+                                <h3>Anteprima del post</h3>
+                                <p>Controlla come apparirà il tuo post prima di pubblicarlo</p>
+                            </div>
+
+                            <div class="post-preview-container">
+                                <div class="post-preview">
+                                    <div class="post-preview-header">
+                                        <div class="platform-icon" id="previewPlatformIcon">
+                                            <i class="fab fa-instagram"></i>
+                                        </div>
+                                        <div class="post-user">
+                                            <span>@User.Identity.Name</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="post-preview-image" id="previewImageContainer">
+                                        <img id="previewImage" src="#" alt="Anteprima post">
+                                    </div>
+
+                                    <div class="post-preview-content">
+                                        <div id="previewContent"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="step-navigation">
+                                <!-- Sostituito testo con icona per il pulsante Indietro -->
+                                <button type="button" class="btn btn-outline-secondary prev-step btn-nav">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                                <!-- Aggiunta icona al pulsante Salva -->
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save btn-action-icon"></i>Salva
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Gestione steps
+        $(document).ready(function() {
+            // Gestione della selezione piattaforma
+            $('.platform-card').click(function() {
+                $('.platform-card').removeClass('selected');
+                $(this).addClass('selected');
+                $('#selectedPlatform').val($(this).data('platform'));
+                $('#stepOneNext').prop('disabled', false);
+            });
+
+            // Navigazione tra i passaggi
+            $('.next-step').click(function() {
+                var currentTab = $(this).closest('.tab-pane');
+                var nextTabId = currentTab.next('.tab-pane').attr('id');
+                $('#creationSteps button[data-bs-target="#' + nextTabId + '"]').tab('show');
+            });
+
+            $('.prev-step').click(function() {
+                var currentTab = $(this).closest('.tab-pane');
+                var prevTabId = currentTab.prev('.tab-pane').attr('id');
+                $('#creationSteps button[data-bs-target="#' + prevTabId + '"]').tab('show');
+            });
+
+            // Gestione dell'upload dell'immagine
+            $('#triggerUpload').click(function() {
+                $('#imageUpload').click();
+            });
+
+            $('#imageUpload').change(function() {
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#imagePreview').attr('src', e.target.result);
+                        $('#hiddenImgUrl').val(e.target.result);
+                        $('#imagePreviewContainer').removeClass('d-none');
+                        $('#uploadContainer').addClass('d-none');
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+
+            $('.remove-image').click(function() {
+                $('#imageUpload').val('');
+                $('#hiddenImgUrl').val('');
+                $('#imagePreviewContainer').addClass('d-none');
+                $('#uploadContainer').removeClass('d-none');
+            });
+
+            // Gestione interesse personalizzato
+            $('#customInterestCheck').change(function() {
+                if ($(this).is(':checked')) {
+                    $('#customInterestField').removeClass('d-none');
+                } else {
+                    $('#customInterestField').addClass('d-none');
+                }
+            });
+
+            // Limitare la selezione a 3 interessi
+            $('.interest-check').change(function() {
+                if ($('.interest-check:checked').length > 3) {
+                    $(this).prop('checked', false);
+                    alert('Puoi selezionare massimo 3 temi di interesse');
+                }
+            });
+
+            // Generazione del contenuto - CHIAMATA AJAX MODIFICATA
+            $('#generateContent').click(function() {
+                var selectedInterests = [];
+                $('.interest-check:checked').each(function() {
+                    selectedInterests.push($(this).val());
+                });
+
+                // Aggiungi interesse personalizzato se selezionato
+                if ($('#customInterestCheck').is(':checked') && $('#customInterestText').val().trim() !== '') {
+                    selectedInterests.push($('#customInterestText').val().trim());
+                }
+
+                if (selectedInterests.length === 0) {
+                    $('#interestsError').removeClass('d-none');
+                    return;
+                } else {
+                    $('#interestsError').addClass('d-none');
+                }
+
+                $('#contentLoading').removeClass('d-none');
+
+                // Chiamata AJAX modificata per correggere l'invio dell'array
+                $.ajax({
+                    url: '?handler=GenerateContent',
+                    type: 'POST',
+                    data: {
+                        platform: $('#selectedPlatform').val(),
+                        'interests': selectedInterests,  // Questo è il modo corretto di passare l'array
+                        imgDescription: '' // Rimosso riferimento all'immagine
+                    },
+                    traditional: true,  // Importante per la serializzazione corretta degli array
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(data) {
+                        $('#PostInput_Content').val(data);
+                        $('#contentLoading').addClass('d-none');
+
+                        // Estrai gli hashtag
+                        var hashtags = data.match(/#[a-zA-Z0-9]+/g) || [];
+                        var hashtagHtml = hashtags.map(tag => `<span class="hashtag">${tag}</span>`).join(' ');
+                        $('#hashtagContainer').html(hashtagHtml);
+
+                        // Aggiorna l'anteprima
+                        updatePreview();
+                    },
+                    error: function(xhr, status, error) {
+                        $('#contentLoading').addClass('d-none');
+                        console.error("Errore nella chiamata AJAX:", xhr.responseText);
+                        alert('Si è verificato un errore durante la generazione del contenuto. Riprova più tardi.');
+                    }
+                });
+            });
+
+            // Aggiorna l'anteprima quando si va al passaggio 4
+            $('#step3Next').click(function() {
+                updatePreview();
+            });
+
+            function updatePreview() {
+                // Aggiorna l'icona della piattaforma
+                var platform = $('#selectedPlatform').val();
+                $('#previewPlatformIcon i').attr('class', 'fab fa-' + platform.toLowerCase());
+
+                // Aggiorna l'immagine
+                if ($('#hiddenImgUrl').val()) {
+                    $('#previewImage').attr('src', $('#hiddenImgUrl').val());
+                    $('#previewImageContainer').show();
+                } else {
+                    $('#previewImageContainer').hide();
+                }
+
+                // Aggiorna il contenuto
+                var content = $('#PostInput_Content').val().replace(/#(\w+)/g, '<span class="hashtag">#$1</span>');
+                $('#previewContent').html('<p>' + content + '</p>');
+            }
+
+            // Validazione prima dell'invio
+            $('#postForm').submit(function(e) {
+                if ($('#selectedPlatform').val() === '') {
+                    e.preventDefault();
+                    alert('Seleziona una piattaforma per il tuo post');
+                    $('#creationSteps button[data-bs-target="#step1"]').tab('show');
+                    return false;
+                }
+
+                if ($('#PostInput_Content').val().trim() === '') {
+                    e.preventDefault();
+                    alert('Inserisci un contenuto per il tuo post');
+                    $('#creationSteps button[data-bs-target="#step3"]').tab('show');
+                    return false;
+                }
+
+                     // Rimuovi eventuali errori di validazione precedenti
+                   $('.validation-summary-errors').remove();
+
+                    // Log per debug
+                    console.log('Form in invio con platform: ' + $('#selectedPlatform').val());
+                    console.log('Content length: ' + $('#PostInput_Content').val().length);
+
+                    // Assicura che il campo ImageFile sia considerato opzionale
+                    if ($('#imageUpload').val() === '') {
+                          console.log('Nessuna immagine selezionata, procedo senza immagine');
+                    }
+
+                return true;
+            });
+
+            $('#savePostButton').click(function() {
+                // Debug per verificare che il pulsante funzioni
+                console.log('Pulsante salva cliccato');
+
+                // Valida il form manualmente
+                if ($('#selectedPlatform').val() === '') {
+                alert('Seleziona una piattaforma per il tuo post');
+                $('#creationSteps button[data-bs-target="#step1"]').tab('show');
+                return false;
+                }
+
+                if ($('#PostInput_Content').val().trim() === '') {
+                alert('Inserisci un contenuto per il tuo post');
+                $('#creationSteps button[data-bs-target="#step3"]').tab('show');
+                return false;
+                }
+
+                console.log('Form validato, invio in corso...');
+
+                // Assicura che il form venga sottomesso
+                $('#postForm').submit();
+            });
+
+
+        });
+    </script>
+}
