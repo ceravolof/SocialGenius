@@ -1,0 +1,373 @@
+﻿@page "{id:int}"
+@model SocialGenius.Pages.Post.EditModel
+@{
+    ViewData["Title"] = "Modifica Post";
+}
+
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/create-post.css" asp-append-version="true" />
+
+<style>
+    /* Stili specifici per la pagina di modifica */
+    .edit-header {
+        background: linear-gradient(145deg, #3a0ca3, #4895ef);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 5px 15px rgba(58, 12, 163, 0.3);
+    }
+
+    .form-floating > label {
+        font-weight: 500;
+        opacity: 0.8;
+    }
+
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        opacity: 1;
+        color: var(--primary-color);
+    }
+
+    .platform-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        z-index: 10;
+    }
+
+        .platform-badge.instagram {
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+        }
+
+        .platform-badge.facebook {
+            background-color: #4267B2;
+        }
+
+    .original-date {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 1.5rem;
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 1rem;
+    }
+
+    .image-wrapper {
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+        .image-wrapper img {
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .image-wrapper:hover img {
+            transform: scale(1.02);
+        }
+
+    .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .image-wrapper:hover .image-overlay {
+        opacity: 1;
+    }
+
+    .content-area {
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .btn-action-icon {
+        margin-right: 8px;
+    }
+
+    /* Miglioramento tooltip */
+    .tooltip-inner {
+        box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+</style>
+
+<div class="edit-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-12">
+                <h1 class="gradient-heading">
+                    <i class="fas fa-edit me-2"></i>Modifica Post
+                </h1>
+                <p class="text-muted">Aggiorna e migliora il tuo contenuto</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="container mt-3">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <!-- Anteprima attuale -->
+            <div class="card position-relative feature-card">
+                <div class="platform-badge @(Model.Post.SocialPlatform.ToLower())">
+                    <i class="fab fa-@(Model.Post.SocialPlatform.ToLower())"></i>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Anteprima Attuale</h5>
+
+                    @if (!string.IsNullOrEmpty(Model.Post.ImgUrl))
+                    {
+                        <div class="image-wrapper">
+                            <img src="@Model.Post.ImgUrl" alt="Immagine del post" class="img-fluid mb-3">
+                            <div class="image-overlay">
+                                <button class="btn btn-light btn-sm" id="changeImage" title="Cambia immagine">
+                                    <i class="fas fa-camera"></i> Cambia
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-light text-center mb-3">
+                            <i class="fas fa-image fa-2x mb-2"></i>
+                            <p>Nessuna immagine</p>
+                        </div>
+                    }
+
+                    <div class="post-content">
+                        <p>@Model.Post.Content</p>
+                    </div>
+
+                    <div class="original-date">
+                        <i class="far fa-calendar-alt me-2"></i> Creato il @Model.Post.DateCreate.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mt-3">
+                <a href="@(User.IsInRole("Premium") ? "/User/Premium/HomePremium" : "/User/HomeUser")" class="btn btn-outline-secondary">
+                    <i class="fas fa-chevron-left btn-action-icon"></i>Torna alla Home
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Form di modifica -->
+            <div class="card feature-card content-area">
+                <div class="card-body">
+                    <h4 class="card-title mb-4">Modifica Contenuti</h4>
+
+                    <form method="post" enctype="multipart/form-data" id="editForm">
+                        <input type="hidden" asp-for="Post.IdPost" />
+                        <input type="hidden" asp-for="Post.UserId" />
+                        <input type="hidden" asp-for="Post.DateCreate" />
+                        <input type="hidden" asp-for="Post.SocialPlatform" />
+                        <input type="hidden" asp-for="Post.ImgUrl" id="currentImgUrl" />
+
+                        <div class="mb-4">
+                            <label class="form-label">Piattaforma</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fab fa-@(Model.Post.SocialPlatform.ToLower())"></i>
+                                </span>
+                                <input type="text" class="form-control" value="@Model.Post.SocialPlatform" disabled>
+                            </div>
+                            <small class="text-muted">La piattaforma non può essere modificata</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="content" class="form-label">Contenuto del Post</label>
+                            <textarea asp-for="Post.Content" id="content" class="form-control" rows="8"
+                                      placeholder="Inserisci il contenuto del tuo post"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label d-block">Immagine del Post</label>
+
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    @if (!string.IsNullOrEmpty(Model.Post.ImgUrl))
+                                    {
+                                        <img src="@Model.Post.ImgUrl" class="img-thumbnail" style="height: 80px;">
+                                    }
+                                    else
+                                    {
+                                        <div class="img-thumbnail text-center" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="flex-grow-1">
+                                    <input type="file" class="form-control" name="NewImage" id="newImage" accept="image/*">
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input" type="checkbox" id="keepCurrentImage" name="keepCurrentImage" value="true" checked>
+                                        <label class="form-check-label" for="keepCurrentImage">
+                                            Mantieni l'immagine attuale se non ne viene caricata una nuova
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                                <i class="fas fa-times btn-action-icon"></i>Annulla
+                            </button>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmEditModal" id="saveButton" disabled title="Nessuna modifica da salvare">
+                                <i class="fas fa-save btn-action-icon"></i>Salva Modifiche
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal di conferma -->
+<div class="modal fade" id="confirmEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Modifiche</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler salvare le modifiche a questo post?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-primary" id="confirmEdit">
+                    <i class="fas fa-save me-1"></i>Salva Modifiche
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var originalContent = "";
+        var hasImageChanged = false;
+
+        $(document).ready(function() {
+
+            // Memorizza il contenuto originale all'avvio
+            originalContent = $("#content").val();
+
+            // Disabilita inizialmente il pulsante
+            updateSaveButtonState();
+
+            // Inizializza i tooltip
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Cambia immagine quando si clicca sul pulsante nella preview
+            $("#changeImage").click(function() {
+                $("#newImage").click();
+            });
+
+            // Controlla le modifiche al contenuto
+            $("#content").on('input', function() {
+                updateSaveButtonState();
+            });
+
+            // Controlla se è stata caricata una nuova immagine
+            $("#newImage").change(function() {
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $(".image-wrapper img").attr('src', e.target.result);
+                        hasImageChanged = true;
+                        updateSaveButtonState();
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+
+            // Controlla cambiamenti nella checkbox di mantenimento immagine
+            $("#keepCurrentImage").change(function() {
+                updateSaveButtonState();
+            });
+
+            // Submit del form
+            $("#confirmEdit").click(function() {
+                $("#editForm").submit();
+            });
+
+            // Anteprima dell'immagine caricata
+            $("#newImage").change(function() {
+                if (this.files && this.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $(".image-wrapper img").attr('src', e.target.result);
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+
+            // Submit del form
+            $("#confirmEdit").click(function() {
+                $("#editForm").submit();
+            });
+            
+    
+
+
+        });
+
+        // Funzione per aggiornare lo stato del pulsante
+            function updateSaveButtonState() {
+            var currentContent = $("#content").val();
+            var contentChanged = (currentContent !== originalContent);
+            var anyChange = contentChanged || hasImageChanged;
+
+            // Ottieni riferimenti ai pulsanti
+            var saveButton = $(".btn-primary[data-bs-toggle='modal']");
+            var confirmButton = $("#confirmEdit");
+
+            if (anyChange) {
+                // Abilita i pulsanti se ci sono modifiche
+                saveButton.prop('disabled', false);
+                saveButton.attr('title', 'Salva le modifiche apportate');
+                confirmButton.prop('disabled', false);
+            } else {
+                // Disabilita i pulsanti se non ci sono modifiche
+                saveButton.prop('disabled', true);
+                saveButton.attr('title', 'Nessuna modifica da salvare');
+                confirmButton.prop('disabled', true);
+            }
+        }
+         
+    </script>
+}

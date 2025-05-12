@@ -1,0 +1,379 @@
+﻿@page "{id:int}"
+@model SocialGenius.Pages.Post.ViewModel
+@{
+    ViewData["Title"] = "Visualizza Post";
+}
+
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+
+<style>
+    /* Stili specifici per la pagina di visualizzazione */
+    .view-header {
+        background: linear-gradient(145deg, #4cc9f0, #4361ee);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 5px 15px rgba(76, 201, 240, 0.3);
+    }
+
+    .post-detail-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.07);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .post-image {
+        width: 100%;
+        max-height: 500px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .post-content {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        white-space: pre-wrap;
+    }
+
+    .post-meta {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .post-meta-item {
+        display: flex;
+        align-items: center;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+        .post-meta-item i {
+            margin-right: 6px;
+        }
+
+    .platform-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 10px;
+    }
+
+        .platform-icon.instagram {
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+        }
+
+        .platform-icon.facebook {
+            background-color: #4267B2;
+        }
+
+    .hashtag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 1.5rem;
+    }
+
+    .hashtag {
+        display: inline-block;
+        background-color: rgba(67, 97, 238, 0.1);
+        color: var(--primary-color);
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .hashtag:hover {
+            background-color: rgba(67, 97, 238, 0.15);
+            transform: translateY(-2px);
+        }
+
+    .action-bar {
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .action-bar-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-floating {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        z-index: 100;
+    }
+
+        .btn-floating:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+    .share-options {
+        display: flex;
+        gap: 10px;
+        margin-top: 1rem;
+    }
+
+    .share-button {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+        .share-button:hover {
+            transform: translateY(-3px);
+        }
+
+        .share-button.facebook {
+            background-color: #4267B2;
+        }
+
+        .share-button.twitter {
+            background-color: #1DA1F2;
+        }
+
+        .share-button.whatsapp {
+            background-color: #25D366;
+        }
+
+        .share-button.linkedin {
+            background-color: #0077B5;
+        }
+
+    /* Animazione entrata */
+    @@keyframes fadeInUp {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+</style>
+
+<div class="view-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-12">
+                <h1 class="gradient-heading">
+                    <i class="fas fa-eye me-2"></i>Visualizza Post
+                </h1>
+                <p class="text-muted">Dettagli completi del tuo contenuto</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="post-detail-card card animate-fade-in">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="post-meta">
+                        <div class="post-meta-item">
+                            <div class="platform-icon @(Model.Post.SocialPlatform.ToLower())">
+                                <i class="fab fa-@(Model.Post.SocialPlatform.ToLower())"></i>
+                            </div>
+                            <span>@Model.Post.SocialPlatform</span>
+                        </div>
+
+                        <div class="post-meta-item">
+                            <i class="far fa-calendar-alt"></i>
+                            <span>@Model.Post.DateCreate.ToString("dd MMMM yyyy, HH:mm")</span>
+                        </div>
+
+                        <div class="post-meta-item">
+                            <i class="far fa-user"></i>
+                            <span>@Model.UserName</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Post.ImgUrl))
+                    {
+                        <div class="text-center mb-4">
+                            <img src="@Model.Post.ImgUrl" alt="Immagine del post" class="post-image img-fluid shadow-sm">
+                        </div>
+                    }
+
+                    <div class="post-content mb-4">
+                        @Model.Post.Content
+                    </div>
+
+                    @if (Model.Hashtags.Any())
+                    {
+                        <div class="hashtag-list">
+                            @foreach (var hashtag in Model.Hashtags)
+                            {
+                                <span class="hashtag">@hashtag</span>
+                            }
+                        </div>
+                    }
+
+                    <div class="action-bar">
+                        <div class="action-bar-group">
+                            <a href="@(User.IsInRole("Premium") ? "/User/Premium/HomePremium" : "/User/HomeUser")" class="btn btn-outline-secondary">
+                                <i class="fas fa-chevron-left me-1"></i>Torna alla Home
+                            </a>
+                        </div>
+
+                        <div class="action-bar-group">
+                            @if (Model.UserCanEdit)
+                            {
+                                <a href="/Post/Edit/@Model.Post.IdPost" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit me-1"></i>Modifica
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash me-1"></i>Elimina
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card animate-fade-in" style="animation-delay: 0.2s;">
+                <div class="card-header">
+                    <h5 class="mb-0">Condividi questo post</h5>
+                </div>
+                <div class="card-body">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="shareUrl" value="@($"{Request.Scheme}://{Request.Host}/Post/View/{Model.Post.IdPost}")" readonly>
+                        <button class="btn btn-outline-primary" type="button" id="copyLink">
+                            <i class="fas fa-copy me-1"></i>Copia
+                        </button>
+                    </div>
+
+                    <div class="share-options">
+                        <a href="javascript:void(0)" class="share-button facebook" onclick="shareToFacebook()">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="javascript:void(0)" class="share-button twitter" onclick="shareToTwitter()">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="javascript:void(0)" class="share-button whatsapp" onclick="shareToWhatsApp()">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                        <a href="javascript:void(0)" class="share-button linkedin" onclick="shareToLinkedIn()">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pulsante fluttuante per tornare alla home -->
+<a href="@(User.IsInRole("Premium") ? "/User/Premium/HomePremium" : "/User/HomeUser")" class="btn btn-primary btn-floating">
+    <i class="fas fa-home"></i>
+</a>
+
+<!-- Modal di conferma eliminazione -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Conferma Eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sei sicuro di voler eliminare questo post? Questa azione non può essere annullata.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                <form method="post" asp-page-handler="Delete">
+                    <input type="hidden" name="id" value="@Model.Post.IdPost">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Elimina Post
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Copia il link negli appunti
+            $("#copyLink").click(function() {
+                var copyText = document.getElementById("shareUrl");
+                copyText.select();
+                copyText.setSelectionRange(0, 99999); // Per dispositivi mobili
+                document.execCommand("copy");
+
+                // Feedback per l'utente
+                var originalText = $(this).html();
+                $(this).html('<i class="fas fa-check me-1"></i>Copiato!');
+                setTimeout(function() {
+                    $("#copyLink").html(originalText);
+                }, 2000);
+            });
+        });
+
+        // Funzioni di condivisione
+        function shareToFacebook() {
+            var url = encodeURIComponent(document.getElementById("shareUrl").value);
+            window.open('https://www.facebook.com/sharer/sharer.php?u=' + url, '_blank');
+        }
+
+        function shareToTwitter() {
+            var url = encodeURIComponent(document.getElementById("shareUrl").value);
+            var text = encodeURIComponent("Guarda questo post su SocialGenius! ");
+            window.open('https://twitter.com/intent/tweet?text=' + text + '&url=' + url, '_blank');
+        }
+
+        function shareToWhatsApp() {
+            var url = encodeURIComponent(document.getElementById("shareUrl").value);
+            var text = encodeURIComponent("Guarda questo post su SocialGenius! ");
+            window.open('https://api.whatsapp.com/send?text=' + text + url, '_blank');
+        }
+
+        function shareToLinkedIn() {
+            var url = encodeURIComponent(document.getElementById("shareUrl").value);
+            window.open('https://www.linkedin.com/shareArticle?mini=true&url=' + url, '_blank');
+        }
+    </script>
+}
