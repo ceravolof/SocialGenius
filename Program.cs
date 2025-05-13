@@ -89,6 +89,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromDays(7);
     options.LogoutPath = "/Account/Logout";
     options.SlidingExpiration = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 
     // Molto importante: rinnovare il cookie ad ogni autenticazione
     options.SlidingExpiration = true;
