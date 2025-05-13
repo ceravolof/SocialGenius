@@ -144,7 +144,7 @@
                     <div class="navbar-collapse collapse">
                         <ul class="navbar-nav me-auto">
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/User/HomeUser">
+                                <a class="nav-link" asp-area="" asp-page="@(User.IsInRole("Premium") ? "/User/Premium/HomePremium" : "/User/HomeUser")">
                                     <i class="fas fa-home nav-icon"></i>Home
                                 </a>
                             </li>
