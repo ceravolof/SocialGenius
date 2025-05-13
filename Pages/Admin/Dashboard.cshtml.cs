@@ -135,6 +135,11 @@ namespace SocialGenius.Pages.Admin
                 _logger.LogWarning("Tentativo di creazione utente con modello null");
                 return new JsonResult(new { success = false, message = "Dati mancanti" });
             }
+            if (model.Role == "User")
+            {
+                model.Role = "Base";
+                _logger.LogInformation("Ruolo 'User' convertito in 'Base' per coerenza");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -222,6 +227,18 @@ namespace SocialGenius.Pages.Admin
             }
         }
 
+        private async Task InvalidateUserSessionsAsync(string userId)
+        {
+            // Questo codice genera un nuovo SecurityStamp per l'utente,
+            // il che invalida tutti i cookie e sessioni esistenti
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                _logger.LogInformation($"Invalidazione sessioni per utente {user.UserName}");
+                await _userManager.UpdateSecurityStampAsync(user);
+            }
+        }
+
         // Metodo per modificare un utente
         public async Task<IActionResult> OnPostEditUserAsync([FromBody] UserEditDto model)
         {
@@ -240,6 +257,12 @@ namespace SocialGenius.Pages.Admin
                     .Select(e => e.ErrorMessage));
                 _logger.LogWarning($"ModelState non valido: {errors}");
                 return new JsonResult(new { success = false, message = $"Dati non validi: {errors}" });
+            }
+
+            if (model.Role == "User")
+            {
+                model.Role = "Base";
+                _logger.LogInformation("Ruolo 'User' convertito in 'Base' per coerenza");
             }
 
             var user = await _userManager.FindByIdAsync(model.Id);
@@ -283,36 +306,69 @@ namespace SocialGenius.Pages.Admin
 
                 try
                 {
-                    // Aggiorna il ruolo
+                    // Gestione ruoli più sicura
                     var currentRoles = await _userManager.GetRolesAsync(user);
 
-                    // Se il ruolo è cambiato
-                    if (!currentRoles.Contains(model.Role) || currentRoles.Count > 1)
+                    // Tracciamento dei cambiamenti di ruolo
+                    bool rolesChanged = false;
+
+                    // Verifica che il ruolo esista
+                    if (!await _roleManager.RoleExistsAsync(model.Role))
                     {
-                        // Verifica che il ruolo esista
-                        if (!await _roleManager.RoleExistsAsync(model.Role))
-                        {
-                            _logger.LogWarning($"Ruolo {model.Role} non trovato, creazione automatica");
-                            await _roleManager.CreateAsync(new IdentityRole(model.Role));
-                        }
+                        _logger.LogWarning($"Ruolo {model.Role} non trovato, creazione automatica");
+                        await _roleManager.CreateAsync(new IdentityRole(model.Role));
+                    }
 
-                        // Rimuovi tutti i ruoli correnti
-                        if (currentRoles.Any())
-                        {
-                            await _userManager.RemoveFromRolesAsync(user, currentRoles);
-                        }
+                    _logger.LogDebug($"Aggiornamento ruolo per utente {model.Username} - Ruoli correnti: [{string.Join(", ", currentRoles)}] - Nuovo ruolo: {model.Role}");
 
-                        // Assegna il nuovo ruolo
+                    // Prima aggiungi il nuovo ruolo, poi rimuovi gli altri
+                    if (!currentRoles.Contains(model.Role))
+                    {
+                        // Aggiungi il nuovo ruolo prima di rimuovere quelli vecchi
                         await _userManager.AddToRoleAsync(user, model.Role);
                         _logger.LogInformation($"Ruolo {model.Role} assegnato a {model.Username}");
+                        rolesChanged = true;
+                    }
+
+                    // Ora rimuovi solo i ruoli diversi da quello nuovo
+                    foreach (var role in currentRoles)
+                    {
+                        if (role != model.Role)
+                        {
+                            await _userManager.RemoveFromRoleAsync(user, role);
+                            _logger.LogInformation($"Ruolo {role} rimosso da {model.Username}");
+                            rolesChanged = true;
+                        }
+                    }
+
+                    // Se i ruoli sono cambiati, invalida le sessioni dell'utente
+                    if (rolesChanged)
+                    {
+                        await InvalidateUserSessionsAsync(user.Id);
+                        return new JsonResult(new
+                        {
+                            success = true,
+                            message = "Utente aggiornato con successo",
+                            warning = "I ruoli sono stati modificati. L'utente dovrà disconnettersi e riconnettersi per applicare le nuove autorizzazioni."
+                        });
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Errore nell'aggiornamento dei ruoli per {model.Username}");
+
+                    // Verifica di sicurezza: controlla se l'utente ha ancora ruoli
+                    var userRoles = await _userManager.GetRolesAsync(user);
+                    if (!userRoles.Any())
+                    {
+                        // Se l'utente è rimasto senza ruoli, assegna Base come fallback
+                        await _userManager.AddToRoleAsync(user, "Base");
+                        _logger.LogWarning($"Assegnato ruolo 'Base' a {model.Username} come fallback dopo un errore");
+                    }
+
                     return new JsonResult(new
                     {
-                        success = true, // L'utente è stato aggiornato ma c'è stato un errore con il ruolo
+                        success = true,
                         warning = $"Utente aggiornato ma errore nell'aggiornamento dei ruoli: {ex.Message}",
                         message = "Utente aggiornato con successo"
                     });

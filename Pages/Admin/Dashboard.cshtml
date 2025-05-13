@@ -106,7 +106,8 @@
         color: #ffc107;
     }
 
-    .role-user {
+    /* Mantengo entrambe le classi per garantire la compatibilità */
+    .role-user, .role-base {
         background-color: rgba(72, 97, 238, 0.1);
         color: var(--primary-color);
     }
@@ -417,9 +418,9 @@
                             <td>
                                 @{
                                     var userRoles = await Model.GetUserRoles(user);
-                                    var primaryRole = userRoles.FirstOrDefault() ?? "User";
+                                    var primaryRole = userRoles.FirstOrDefault() ?? "Base";
                                     var roleClass = primaryRole.ToLower() == "admin" ? "role-admin" :
-                                    primaryRole.ToLower() == "premium" ? "role-premium" : "role-user";
+                                    primaryRole.ToLower() == "premium" ? "role-premium" : "role-base";
                                 }
                                 <span class="user-role @roleClass">@primaryRole</span>
                             </td>
@@ -527,7 +528,7 @@
                     <div class="mb-3">
                         <label for="newRole" class="form-label">Ruolo</label>
                         <select class="form-select" id="newRole" required>
-                            <option value="User">User</option>
+                            <option value="Base">Base</option>
                             <option value="Premium">Premium</option>
                             <option value="Admin">Admin</option>
                         </select>
@@ -568,7 +569,7 @@
                     <div class="mb-3">
                         <label for="editRole" class="form-label">Ruolo</label>
                         <select class="form-select" id="editRole" required>
-                            <option value="User">User</option>
+                            <option value="Base">Base</option>
                             <option value="Premium">Premium</option>
                             <option value="Admin">Admin</option>
                         </select>
@@ -673,6 +674,12 @@
     </div>
 </div>
 
+<div class="alert alert-info mt-3" id="roleChangeAlert" style="display: none;">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Attenzione:</strong> Il ruolo dell'utente è stato modificato. 
+    L'utente dovrà disconnettersi e riconnettersi per applicare le nuove autorizzazioni.
+</div>
+
 <!-- Toast per notifiche -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
     <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
@@ -702,6 +709,14 @@
 </style>
 
 @section Scripts {
+        <script>
+        // Aggiungi questo allo script esistente
+        // Da eseguire quando la modifica del ruolo ha esito positivo:
+        document.getElementById('roleChangeAlert').style.display = 'block';
+        setTimeout(() => {
+            document.getElementById('roleChangeAlert').style.display = 'none';
+        }, 10000);  // Nascondi dopo 10 secondi
+    </script>
     <script>
         // Funzione per ottenere un colore casuale ma coerente in base al nome utente
         function stringToColor(str) {
@@ -718,319 +733,6 @@
             return colors[Math.abs(hash) % colors.length];
         }
 
-        // Funzione per mostrare il toast con messaggi personalizzati
-        function showToast(title, message, type = 'success') {
-            // Imposta stile in base al tipo
-            let headerClass, iconClass;
-
-            switch(type) {
-                case 'success':
-                    headerClass = 'toast-header bg-success text-white';
-                    iconClass = 'fas fa-check-circle me-2';
-                    break;
-                case 'error':
-                    headerClass = 'toast-header bg-danger text-white';
-                    iconClass = 'fas fa-exclamation-circle me-2';
-                    break;
-                case 'info':
-                    headerClass = 'toast-header bg-info text-white';
-                    iconClass = 'fas fa-info-circle me-2';
-                    break;
-                case 'warning':
-                    headerClass = 'toast-header bg-warning text-white';
-                    iconClass = 'fas fa-exclamation-triangle me-2';
-                    break;
-                default:
-                    headerClass = 'toast-header bg-primary text-white';
-                    iconClass = 'fas fa-info-circle me-2';
-            }
-
-            // Imposta valori
-            document.getElementById('toastHeader').className = headerClass;
-            document.getElementById('toastIcon').className = iconClass;
-            document.getElementById('toastTitle').textContent = title;
-            document.getElementById('toastBody').textContent = message;
-
-            // Mostra toast
-            window.toast.show();
-        }
-
-        // Funzione per inviare una richiesta AJAX con gestione token antiforgery
-        async function sendAjaxRequest(handler, data) {
-            try {
-                // Ottieni il token anti-forgery
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
-                // Esegui la richiesta AJAX
-                const response = await fetch(`?handler=${handler}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                // Verifica se la risposta è ok (status 200-299)
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Errore HTTP ${response.status}: ${errorText}`);
-                }
-
-                return await response.json();
-            } catch (error) {
-                console.error('Errore AJAX:', error);
-                showToast('Errore', error.message, 'error');
-                throw error;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inizializzazione tooltip
-            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
-
-            // Impostazione colori avatar
-            document.querySelectorAll('.avatar').forEach(avatar => {
-                if (avatar.style.backgroundColor === 'var(--random-color)') {
-                    const username = avatar.parentElement.querySelector('.fw-bold').textContent;
-                    avatar.style.backgroundColor = stringToColor(username);
-                }
-            });
-
-            // Inizializzazione toast
-            const toastLiveExample = document.getElementById('liveToast');
-            window.toast = new bootstrap.Toast(toastLiveExample);
-
-            // Gestione aggiunta utente
-            document.getElementById('addUserForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const username = document.getElementById('newUsername').value;
-                const email = document.getElementById('newEmail').value;
-                const role = document.getElementById('newRole').value;
-
-                try {
-                    // Invia richiesta AJAX per aggiungere l'utente
-                    const result = await sendAjaxRequest('AddUser', {
-                        username,
-                        email,
-                        role
-                    });
-
-                    if (result.success) {
-                        // Mostra la password temporanea se disponibile
-                        let successMsg = `L'utente ${username} è stato aggiunto con successo.`;
-                        if (result.temporaryPassword) {
-                            successMsg += `\nPassword temporanea: ${result.temporaryPassword}`;
-                            alert(`Password temporanea per ${username}: ${result.temporaryPassword}\nConservala in un luogo sicuro!`);
-                        }
-
-                        showToast('Utente aggiunto', successMsg, 'success');
-
-                        // Chiudi il modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
-                        modal.hide();
-
-                        // Ricaricare la pagina dopo un breve ritardo
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        showToast('Errore', result.message || 'Errore durante la creazione dell\'utente', 'error');
-                    }
-                } catch (error) {
-                    console.error('Errore durante l\'aggiunta dell\'utente:', error);
-                }
-            });
-
-            // Gestione modifica utente
-            document.getElementById('editUserForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const id = document.getElementById('editUserId').value;
-                const username = document.getElementById('editUsername').value;
-                const email = document.getElementById('editEmail').value;
-                const role = document.getElementById('editRole').value;
-                const isActive = document.getElementById('editStatus').checked;
-
-                try {
-                    // Invia richiesta AJAX per modificare l'utente
-                    const result = await sendAjaxRequest('EditUser', {
-                        id,
-                        username,
-                        email,
-                        role,
-                        isActive
-                    });
-
-                    if (result.success) {
-                        showToast('Utente modificato', `L'utente ${username} è stato modificato con successo.`, 'success');
-
-                        // Chiudi il modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
-                        modal.hide();
-
-                        // Ricaricare la pagina dopo un breve ritardo
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        showToast('Errore', result.message || 'Errore durante la modifica dell\'utente', 'error');
-                    }
-                } catch (error) {
-                    console.error('Errore durante la modifica dell\'utente:', error);
-                }
-            });
-
-            // Gestione eliminazione utente
-            document.getElementById('deleteUserForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-
-                const id = document.getElementById('deleteUserId').value;
-                const username = document.getElementById('deleteUserName').textContent;
-
-                try {
-                    // Invia richiesta AJAX per eliminare l'utente
-                    const result = await sendAjaxRequest('DeleteUser', { id });
-
-                    if (result.success) {
-                        showToast('Utente eliminato', `L'utente ${username} è stato eliminato con successo.`, 'success');
-
-                        // Chiudi il modal
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'));
-                        modal.hide();
-
-                        // Ricaricare la pagina dopo un breve ritardo
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 1500);
-                    } else {
-                        showToast('Errore', result.message || 'Errore durante l\'eliminazione dell\'utente', 'error');
-                    }
-                } catch (error) {
-                    console.error('Errore durante l\'eliminazione dell\'utente:', error);
-                }
-            });
-
-            // Reset password button
-            document.getElementById('resetPasswordBtn').addEventListener('click', async function() {
-                const userId = document.getElementById('editUserId').value;
-                const username = document.getElementById('editUsername').value;
-
-                if (confirm(`Sei sicuro di voler reimpostare la password per l'utente ${username}?`)) {
-                    try {
-                        // Invia richiesta AJAX per reimpostare la password
-                        const result = await sendAjaxRequest('ResetPassword', { id: userId });
-
-                        if (result.success) {
-                            if (result.temporaryPassword) {
-                                alert(`Password temporanea per ${username}: ${result.temporaryPassword}\nConservala in un luogo sicuro!`);
-                            }
-
-                            showToast('Password reimpostata', 'La password è stata reimpostata con successo.', 'success');
-                        } else {
-                            showToast('Errore', result.message || 'Errore durante il reset della password', 'error');
-                        }
-                    } catch (error) {
-                        console.error('Errore durante il reset della password:', error);
-                    }
-                }
-            });
-
-            // Aggiornamento dati
-            document.getElementById('refreshData').addEventListener('click', function() {
-                window.location.reload();
-            });
-
-            // Filtri di ricerca
-            document.getElementById('searchButton').addEventListener('click', function() {
-                const query = document.getElementById('searchQuery').value;
-                const role = document.getElementById('roleFilter').value;
-                const status = document.getElementById('statusFilter').value;
-
-                // Costruisci URL con i parametri di ricerca
-                let url = window.location.pathname + '?';
-                if (query) url += `q=${encodeURIComponent(query)}&`;
-                if (role) url += `role=${encodeURIComponent(role)}&`;
-                if (status) url += `status=${encodeURIComponent(status)}&`;
-
-                window.location.href = url;
-            });
-        });
-
-        // Funzioni per i pulsanti delle azioni
-        function editUser(id, username, email) {
-            document.getElementById('editUserId').value = id;
-            document.getElementById('editUsername').value = username;
-            document.getElementById('editEmail').value = email;
-
-            // Qui potresti fare una chiamata AJAX per ottenere più dettagli sull'utente
-
-            const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-            editModal.show();
-        }
-
-        function viewUserDetails(id) {
-            // Simuliamo il caricamento dei dettagli (in un'app reale faresti una chiamata AJAX)
-            const userRow = document.querySelector(`tr[data-user-id="${id}"]`) ||
-                            Array.from(document.querySelectorAll('tr')).find(tr => tr.textContent.includes(id));
-
-            if (userRow) {
-                const username = userRow.querySelector('.fw-bold').textContent;
-                const email = userRow.cells[1].textContent;
-                const role = userRow.querySelector('.user-role').textContent;
-                const isActive = userRow.querySelector('.user-status').classList.contains('status-active');
-
-                // Imposta i valori nel modal
-                document.getElementById('detailsUserName').textContent = username;
-                document.getElementById('detailsEmail').textContent = email;
-                document.getElementById('detailsStatus').textContent = isActive ? 'Attivo' : 'Inattivo';
-                document.getElementById('detailsCreated').textContent = '01/01/2023'; // Esempio
-                document.getElementById('detailsLastLogin').textContent = '15/05/2023'; // Esempio
-                document.getElementById('detailsPosts').textContent = Math.floor(Math.random() * 50); // Esempio
-
-                // Imposta il colore dell'avatar e la classe del ruolo
-                const avatar = document.getElementById('userAvatar');
-                avatar.style.backgroundColor = stringToColor(username);
-                avatar.textContent = username.substring(0, 1).toUpperCase();
-
-                const roleSpan = document.getElementById('detailsUserRole');
-                roleSpan.textContent = role;
-                roleSpan.className = 'user-role';
-                if (role.toLowerCase() === 'admin')
-                    roleSpan.classList.add('role-admin');
-                else if (role.toLowerCase() === 'premium')
-                    roleSpan.classList.add('role-premium');
-                else
-                    roleSpan.classList.add('role-user');
-
-                // Aggiungi event listener al pulsante "Modifica"
-                document.getElementById('editUserBtn').onclick = function() {
-                    // Chiudi modal dettagli
-                    const detailsModal = bootstrap.Modal.getInstance(document.getElementById('userDetailsModal'));
-                    detailsModal.hide();
-
-                    // Apri modal modifica
-                    setTimeout(() => {
-                        editUser(id, username, email);
-                    }, 500);
-                };
-            }
-
-            const detailsModal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
-            detailsModal.show();
-        }
-
-        function confirmDeleteUser(id, username) {
-            document.getElementById('deleteUserId').value = id;
-            document.getElementById('deleteUserName').textContent = username;
-
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
-            deleteModal.show();
-        }
-    </script>
-    <script>
         // Funzione per mostrare il toast con messaggi personalizzati
         function showToast(title, message, type = 'success') {
             // Imposta stile in base al tipo
@@ -1176,6 +878,190 @@
                 console.error('Errore durante l\'aggiunta dell\'utente:', error);
                 showToast('Errore', 'Si è verificato un errore durante l\'operazione', 'error');
             }
+        });
+
+        // Funzioni per i pulsanti delle azioni
+        function editUser(id, username, email) {
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editUsername').value = username;
+            document.getElementById('editEmail').value = email;
+
+            // Qui potresti fare una chiamata AJAX per ottenere più dettagli sull'utente
+            const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            editModal.show();
+        }
+
+        function viewUserDetails(id) {
+            // Simuliamo il caricamento dei dettagli (in un'app reale faresti una chiamata AJAX)
+            const userRow = document.querySelector(`tr[data-user-id="${id}"]`) ||
+                            Array.from(document.querySelectorAll('tr')).find(tr => tr.textContent.includes(id));
+
+            if (userRow) {
+                const username = userRow.querySelector('.fw-bold').textContent;
+                const email = userRow.cells[1].textContent;
+                const role = userRow.querySelector('.user-role').textContent;
+                const isActive = userRow.querySelector('.user-status').classList.contains('status-active');
+
+                // Imposta i valori nel modal
+                document.getElementById('detailsUserName').textContent = username;
+                document.getElementById('detailsEmail').textContent = email;
+                document.getElementById('detailsStatus').textContent = isActive ? 'Attivo' : 'Inattivo';
+                document.getElementById('detailsCreated').textContent = '01/01/2023'; // Esempio
+                document.getElementById('detailsLastLogin').textContent = '15/05/2023'; // Esempio
+                document.getElementById('detailsPosts').textContent = Math.floor(Math.random() * 50); // Esempio
+
+                // Imposta il colore dell'avatar e la classe del ruolo
+                const avatar = document.getElementById('userAvatar');
+                avatar.style.backgroundColor = stringToColor(username);
+                avatar.textContent = username.substring(0, 1).toUpperCase();
+
+                const roleSpan = document.getElementById('detailsUserRole');
+                roleSpan.textContent = role;
+                roleSpan.className = 'user-role';
+                if (role.toLowerCase() === 'admin')
+                    roleSpan.classList.add('role-admin');
+                else if (role.toLowerCase() === 'premium')
+                    roleSpan.classList.add('role-premium');
+                else
+                    roleSpan.classList.add('role-base'); // Modificato da role-user a role-base
+
+                // Aggiungi event listener al pulsante "Modifica"
+                document.getElementById('editUserBtn').onclick = function() {
+                    // Chiudi modal dettagli
+                    const detailsModal = bootstrap.Modal.getInstance(document.getElementById('userDetailsModal'));
+                    detailsModal.hide();
+
+                    // Apri modal modifica
+                    setTimeout(() => {
+                        editUser(id, username, email);
+                    }, 500);
+                };
+            }
+
+            const detailsModal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+            detailsModal.show();
+        }
+
+        function confirmDeleteUser(id, username) {
+            document.getElementById('deleteUserId').value = id;
+            document.getElementById('deleteUserName').textContent = username;
+
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+            deleteModal.show();
+        }
+
+        // Gestione modifica utente
+        document.getElementById('editUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('editUserId').value;
+            const username = document.getElementById('editUsername').value;
+            const email = document.getElementById('editEmail').value;
+            const role = document.getElementById('editRole').value;
+            const isActive = document.getElementById('editStatus').checked;
+
+            try {
+                // Invia richiesta AJAX per modificare l'utente
+                const result = await sendAjaxRequest('EditUser', {
+                    id,
+                    username,
+                    email,
+                    role,
+                    isActive
+                });
+
+                if (result.success) {
+                    showToast('Utente modificato', `L'utente ${username} è stato modificato con successo.`, 'success');
+
+                    // Chiudi il modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                    modal.hide();
+
+                    // Ricaricare la pagina dopo un breve ritardo
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast('Errore', result.message || 'Errore durante la modifica dell\'utente', 'error');
+                }
+            } catch (error) {
+                console.error('Errore durante la modifica dell\'utente:', error);
+            }
+        });
+
+        // Gestione eliminazione utente
+        document.getElementById('deleteUserForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('deleteUserId').value;
+            const username = document.getElementById('deleteUserName').textContent;
+
+            try {
+                // Invia richiesta AJAX per eliminare l'utente
+                const result = await sendAjaxRequest('DeleteUser', { id });
+
+                if (result.success) {
+                    showToast('Utente eliminato', `L'utente ${username} è stato eliminato con successo.`, 'success');
+
+                    // Chiudi il modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'));
+                    modal.hide();
+
+                    // Ricaricare la pagina dopo un breve ritardo
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast('Errore', result.message || 'Errore durante l\'eliminazione dell\'utente', 'error');
+                }
+            } catch (error) {
+                console.error('Errore durante l\'eliminazione dell\'utente:', error);
+            }
+        });
+
+        // Reset password button
+        document.getElementById('resetPasswordBtn').addEventListener('click', async function() {
+            const userId = document.getElementById('editUserId').value;
+            const username = document.getElementById('editUsername').value;
+
+            if (confirm(`Sei sicuro di voler reimpostare la password per l'utente ${username}?`)) {
+                try {
+                    // Invia richiesta AJAX per reimpostare la password
+                    const result = await sendAjaxRequest('ResetPassword', { id: userId });
+
+                    if (result.success) {
+                        if (result.temporaryPassword) {
+                            alert(`Password temporanea per ${username}: ${result.temporaryPassword}\nConservala in un luogo sicuro!`);
+                        }
+
+                        showToast('Password reimpostata', 'La password è stata reimpostata con successo.', 'success');
+                    } else {
+                        showToast('Errore', result.message || 'Errore durante il reset della password', 'error');
+                    }
+                } catch (error) {
+                    console.error('Errore durante il reset della password:', error);
+                }
+            }
+        });
+
+        // Aggiornamento dati
+        document.getElementById('refreshData').addEventListener('click', function() {
+            window.location.reload();
+        });
+
+        // Filtri di ricerca
+        document.getElementById('searchButton').addEventListener('click', function() {
+            const query = document.getElementById('searchQuery').value;
+            const role = document.getElementById('roleFilter').value;
+            const status = document.getElementById('statusFilter').value;
+
+            // Costruisci URL con i parametri di ricerca
+            let url = window.location.pathname + '?';
+            if (query) url += `q=${encodeURIComponent(query)}&`;
+            if (role) url += `role=${encodeURIComponent(role)}&`;
+            if (status) url += `status=${encodeURIComponent(status)}&`;
+
+            window.location.href = url;
         });
     </script>
 }

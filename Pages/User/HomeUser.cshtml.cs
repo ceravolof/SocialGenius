@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SocialGenius.Pages.User
 {
-    [Authorize(Roles = "User,Admin")]
+    [Authorize(Roles = "Base,Admin")]
     public class HomeUserModel : PageModel
     {
         private readonly AppDbContext _context;
